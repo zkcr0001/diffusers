@@ -723,17 +723,31 @@ class CycleDiffusionPipeline(DiffusionPipeline):
                     ],
                     dim=0,
                 )
+
                 concat_noise_pred = self.unet(
                     concat_latent_model_input, t, encoder_hidden_states=concat_prompt_embeds
                 ).sample
-
                 # perform guidance
                 (
                     source_noise_pred_uncond,
                     noise_pred_uncond,
                     source_noise_pred_text,
                     noise_pred_text,
-                ) = concat_noise_pred.chunk(4, dim=0)
+                ) = concat_noise_pred.chunk(4, dim=0)     
+
+                # source_noise_pred_uncond = self.unet(
+                #     torch.unsqueeze(concat_latent_model_input[0], dim=0), t, encoder_hidden_states=torch.unsqueeze(concat_prompt_embeds[0], dim=0)
+                # ).sample
+                # noise_pred_uncond = self.unet(
+                #     torch.unsqueeze(concat_latent_model_input[1], dim=0), t, encoder_hidden_states=torch.unsqueeze(concat_prompt_embeds[1], dim=0)
+                # ).sample
+                # source_noise_pred_text = self.unet(
+                #     torch.unsqueeze(concat_latent_model_input[2], dim=0), t, encoder_hidden_states=torch.unsqueeze(concat_prompt_embeds[2], dim=0)
+                # ).sample
+                # noise_pred_text = self.unet(
+                #     torch.unsqueeze(concat_latent_model_input[3], dim=0), t, encoder_hidden_states=torch.unsqueeze(concat_prompt_embeds[3], dim=0)
+                # ).sample
+
                 noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
                 source_noise_pred = source_noise_pred_uncond + source_guidance_scale * (
                     source_noise_pred_text - source_noise_pred_uncond
